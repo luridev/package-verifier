@@ -1,0 +1,80 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    if: github.server_url == 'https://github.com' && github.repository == 'luridev/package-verifier'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verify version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          test "v$VERSION" = "$GITHUB_REF_NAME"
+
+  checks:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    if: github.server_url == 'https://github.com' && github.repository == 'luridev/package-verifier'
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-ubuntu-latest-npm-12.2.2
+          path: .local/artifacts/
+      - name: Verify version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          test "v$VERSION" = "$GITHUB_REF_NAME"
+      # Publish exactly the artifact exercised by the full npm and Node matrices.
+      # Source-directory npm publish still runs the independent prepublishOnly gate.
+      - name: Publish verified tarball
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          npm publish ".local/artifacts/protoapps-package-verifier-$VERSION.tgz" --ignore-scripts
+
+  release:
+    if: github.server_url == 'https://github.com' && github.repository == 'luridev/package-verifier'
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci
+      - name: Create or update GitHub Release
+        run: npm exec --no -- changelogithub --to "$GITHUB_REF_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
