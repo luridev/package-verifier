@@ -1,0 +1,16 @@
+{
+  "name": "verifier-contract-fixture",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "sideEffects": false,
+  "files": ["index.js", "index.d.ts", "feature.js"],
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./feature": "./feature.js"
+  },
+  "dependencies": { "picocolors": "1.1.1" },
+  "devDependencies": { "typescript": "6.0.3" },
+  "scripts": { "prepack": "node -e \"throw new Error('prepack must not run')\"" }
+}

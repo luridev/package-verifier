@@ -1,0 +1,84 @@
+{
+  "name": "@protoapps/package-verifier",
+  "version": "0.1.0",
+  "description": "Small composable checks for built npm package tarballs",
+  "license": "MIT",
+  "repository": "github:luridev/package-verifier",
+  "homepage": "https://github.com/luridev/package-verifier#readme",
+  "bugs": "https://github.com/luridev/package-verifier/issues",
+  "author": "Anton V.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.22.2 || ^24.15.0 || >=26.0.0",
+      "onFail": "error"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "check:commit": "npm run lint && npm run typecheck && npm run test:unit",
+    "check:release": "npm run lint && npm run typecheck && npm test",
+    "clean": "rimraf dist",
+    "lint": "eslint .",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm --dry-run=false run check:release",
+    "prerelease": "jiti scripts/checkRelease.ts",
+    "release": "npm run check:release && bumpp",
+    "test": "npm run test:unit && npm run test:integration && npm run test:package",
+    "test:integration": "vitest run --project integration",
+    "test:matrix": "jiti scripts/testMatrix.ts",
+    "test:node": "node scripts/smokeNode.mjs",
+    "test:package": "npm run build && jiti scripts/verifyPackage.ts",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "npm",
+    "package",
+    "verification",
+    "publint"
+  ],
+  "dependencies": {
+    "cross-spawn": "^7.0.6",
+    "publint": "^0.3.24"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@commitlint/types": "^21.2.3",
+    "@protoapps/eslint-config": "^0.3.7",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^24.10.0",
+    "@vitest/eslint-plugin": "^1.6.28",
+    "bumpp": "^12.3.0",
+    "changelogithub": "^15.0.5",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "jiti": "^2.7.0",
+    "lefthook": "^2.2.2",
+    "rimraf": "^6.1.4",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "lefthook@2.2.2": true,
+    "unrs-resolver": false
+  }
+}

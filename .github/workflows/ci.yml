@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+  test:
+    if: github.server_url == 'https://github.com'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        npm: ['10.9.10', '11.21.2', '12.2.2']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - run: npm ci
+      # Each selected CLI and its PATH shim are version-checked before use.
+      - run: npm run test:matrix -- ${{ matrix.npm }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: package-${{ matrix.os }}-npm-${{ matrix.npm }}
+          path: .local/artifacts/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  node-smoke:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        runtime:
+          - { node: '20.0.0', npm: '10.9.10' }
+          - { node: '22.0.0', npm: '10.9.10' }
+          - { node: '24.21.0', npm: '12.2.2' }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-ubuntu-latest-npm-12.2.2
+          path: .local/artifacts/
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - name: Install isolated npm without project devDependencies
+        working-directory: ${{ runner.temp }}
+        run: npm install --prefix "${{ runner.temp }}/smoke-npm" --ignore-scripts --no-audit --no-fund npm@${{ matrix.runtime.npm }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.runtime.node }}
+          package-manager-cache: false
+      - name: Exercise installed tarball and declarations
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          node scripts/smokeNode.mjs ".local/artifacts/protoapps-package-verifier-$VERSION.tgz" "${{ runner.temp }}/smoke-npm/node_modules/npm/bin/npm-cli.js" "${{ matrix.runtime.node }}" "${{ matrix.runtime.npm }}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: node-${{ matrix.runtime.node }}-${{ matrix.os }}
+          path: .local/artifacts/node-*.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
