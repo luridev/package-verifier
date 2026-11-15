@@ -61,4 +61,4 @@ for (const version of versions) {
   }, { prefix: 'package-verifier-npm-' });
 }
 
-assert.ok(results.every((result) => result.passed), 'The compatibility matrix has failed checks; see .local/artifacts/matrix-*.json');
+assert.ok(results.every((result) => result.passed), 'The compatibility matrix has failed checks; see artifacts/matrix-*.json');

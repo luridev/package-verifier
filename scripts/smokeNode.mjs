@@ -51,7 +51,7 @@ try {
   passed = true;
   process.stdout.write(`Tarball runtime and declarations passed: Node ${expectedNode}, npm ${expectedNpm}\n`);
 } finally {
-  const artifacts = fileURLToPath(new URL('../.local/artifacts/', import.meta.url));
+  const artifacts = fileURLToPath(new URL('../artifacts/', import.meta.url));
   await mkdir(artifacts, { recursive: true });
   await writeFile(join(artifacts, `node-${expectedNode}-${process.platform}.json`), JSON.stringify({
     node: process.versions.node, npm: expectedNpm, archive, passed, commands,

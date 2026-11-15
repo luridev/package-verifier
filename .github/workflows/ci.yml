@@ -44,8 +44,7 @@ jobs:
         if: always()
         with:
           name: package-${{ matrix.os }}-npm-${{ matrix.npm }}
-          path: .local/artifacts/
-          include-hidden-files: true
+          path: artifacts/
           if-no-files-found: error
           retention-days: 7
 
@@ -65,7 +64,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: package-ubuntu-latest-npm-12.2.2
-          path: .local/artifacts/
+          path: artifacts/
       - uses: actions/setup-node@v7
         with:
           node-version: '24.21.0'
@@ -81,12 +80,11 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          node scripts/smokeNode.mjs ".local/artifacts/protoapps-package-verifier-$VERSION.tgz" "${{ runner.temp }}/smoke-npm/node_modules/npm/bin/npm-cli.js" "${{ matrix.runtime.node }}" "${{ matrix.runtime.npm }}"
+          node scripts/smokeNode.mjs "artifacts/protoapps-package-verifier-$VERSION.tgz" "${{ runner.temp }}/smoke-npm/node_modules/npm/bin/npm-cli.js" "${{ matrix.runtime.node }}" "${{ matrix.runtime.npm }}"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: node-${{ matrix.runtime.node }}-${{ matrix.os }}
-          path: .local/artifacts/node-*.json
-          include-hidden-files: true
+          path: artifacts/node-*.json
           if-no-files-found: error
           retention-days: 7

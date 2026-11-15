@@ -3,14 +3,16 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "module": "NodeNext",
-    "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "rewriteRelativeImportExtensions": true,
     "noEmit": true,
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts", "*.config.ts"],
-  "exclude": ["tests/fixtures", "scripts/fixtures", ".local"]
+  "exclude": ["tests/fixtures", "scripts/fixtures"]
 }

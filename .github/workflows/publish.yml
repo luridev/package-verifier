@@ -45,7 +45,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: package-ubuntu-latest-npm-12.2.2
-          path: .local/artifacts/
+          path: artifacts/
       - name: Verify version
         shell: bash
         run: |
@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          npm publish ".local/artifacts/protoapps-package-verifier-$VERSION.tgz" --ignore-scripts
+          npm publish "artifacts/protoapps-package-verifier-$VERSION.tgz" --ignore-scripts
 
   release:
     if: github.server_url == 'https://github.com' && github.repository == 'luridev/package-verifier'
